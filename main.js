@@ -1,13 +1,13 @@
 class Path {
-  constructor(position, parent = null, visited = new Set()) {
+  constructor(position, parent = null) {
     this.position = position;
     this.parent = parent;
-    this.visited = visited;
   }
 }
 
 const graph = {
   limit: 7,
+  visited: new Set(),
 };
 
 function traverse(path) {
@@ -42,48 +42,54 @@ function traverse(path) {
     }
   }
 
-  temp = temp.filter((element) => (path.visited.has(element) ? false : true));
+  temp = temp.filter((element) => (graph.visited.has(element) ? false : true));
 
   return temp;
 }
 
 function checkEnd(paths) {
   if (paths.includes(graph.end)) return true;
-
   return false;
 }
 
-function findPath(start, end) {
-  let path = new Path(JSON.stringify(start));
-  graph.end = JSON.stringify(end);
-  const queue = [path];
-  path.visited.add(path.position);
+function backTrack(path) {
+  const shortestPath = [graph.end];
 
-  let i = 0;
+  while (path !== null) {
+    shortestPath.unshift(path.position);
+    path = path.parent;
+  }
+
+  return shortestPath;
+}
+
+function knightMoves(start, end) {
+  let path = new Path(JSON.stringify(start));
+
+  graph.end = JSON.stringify(end);
+  graph.visited.add(path.position);
+
+  const queue = [path];
 
   while (queue.length !== 0) {
     const paths = traverse(path);
-    
-    if (paths.includes(graph.end)) {
-      console.log(`queue len : ${queue.length}`);
-      console.table(queue);
-      console.log(path.parent.parent);
-      return;
+
+    if (checkEnd(paths)) {
+      graph.shortestPath = backTrack(path);
+      break;
     }
-    console.log(paths);
-    
+
     paths.forEach((pos) => {
       const temp = new Path(pos, path);
-      for(const key of path.visited.keys()) temp.visited.add(key);
-      // temp.visited.add(path.position);  
-      temp.visited.add(temp.position);
+      graph.visited.add(temp.position);
       queue.push(temp);
     });
+
     queue.shift();
     path = queue[0];
-    //  TESTING
-    i++;
   }
+
+  return graph.shortestPath;
 }
 
-findPath([0, 0], [7, 7]);
+console.log(knightMoves([0, 0], [4, 4]));
